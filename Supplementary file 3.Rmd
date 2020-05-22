@@ -1,6 +1,6 @@
 ---
-title: "DADA2_Pacbio_16S"
-author: "Benni"
+title: "The sources and transmission routes of microbial populations throughout a meat processing facility"
+author: "Benjamin Zwirzitz, Franz-Ferdinand Roch, Beate Pinior"
 date: "26 July 2019"
 output: html_document
 ---
