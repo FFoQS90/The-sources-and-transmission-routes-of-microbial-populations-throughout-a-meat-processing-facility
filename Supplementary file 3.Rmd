@@ -1327,3 +1327,135 @@ setEPS()
 postscript("C://Benni/WP1 Pacbio reads neu/Analysis/Relevant_taxa_sourcetracker_heatmap.eps")
 superheat(dplyr::select(heatmapdata, -c(qpcr,logqpcr)),bottom.label.text.angle = 90, col.dendrogram = TRUE,yr=heatmapdata$logqpcr, yr.axis.name = "LOG BCE/cm2",yr.plot.type = "bar")
 ```
+#Statistics for sourcetracker performance at different sequencing depths
+```{r}
+library(car)
+library(dunn.test)
+library(pracma)
+
+#-------------"Goodness of fit" analysis--------------
+#Import data 
+Data=read.csv(file.path("F:","1909Zwirzitz","gof.CSV"),sep=";",header=TRUE)
+
+#Exclude "total" data
+Data = subset(Data,Data$solution!="total")
+Data$solution <- factor(Data$solution)
+#Distribution check of the squared differences 
+res.aov <- aov(diffsq ~ solution, data = Data)
+plot(res.aov,2)
+aov_residuals <- residuals(object = res.aov )
+shapiro.test(x = aov_residuals)
+#Check for homoscedasticity
+#leveneTest(diffsq ~ solution,data=Data)
+#Kruskal Wallis test
+kruskal.test(diffsq~solution,data=Data)
+#post hoc Dunn Test
+dunn.test(Data$diffsq, g=Data$solution,method="BH")
+
+#Mean squared differences "Goodness of fit"
+library (rcompanion)
+groupwiseMean(diffsq~solution, data=Data,conf=0.95, R=5000, percentile = T, bca=F, digits=3)
+
+
+#-------------"Hit ratio" analysis-------------
+#Import Data
+Data=read.csv(file.path("F:","1909Zwirzitz","hitratio.CSV"),sep=";",header=TRUE)
+
+#Distribution check of the squared differences 
+res.aov <- aov(trefferquote ~ solution*location, data = Data)
+plot(res.aov,2)
+aov_residuals <- residuals(object = res.aov )
+shapiro.test(x = aov_residuals)
+#Check for homoscedasticity
+#leveneTest(trefferquote ~ solution,data=Data)
+#Kruskal Wallis test
+kruskal.test(trefferquote~solution,data=Data)
+#post hoc Dunn Test
+dunn.test(Data$trefferquote, g=Data$solution,method="BH")
+
+#Mean hit ratio%
+groupwiseMean(trefferquote~solution, data=Data,conf=0.95, R=5000, percentile = T, bca=F, digits=3)
+
+
+#--------------"classification rate" analysis------------
+#Import for unknown classification
+Data=read.csv(file.path("F:","1909Zwirzitz","unknownclass.CSV"),sep=";",header=TRUE)
+
+#groupwise Means "Mean unknwon classification rate %"
+groupwiseMean(rate~solution, data=Data,conf=0.95, R=5000, percentile = T, bca=F, digits=3)
+
+#Exclude "total" data
+Data<-subset(Data, Data$solution!="all")
+#Distribution check
+res.aov <- aov(diffunknown ~ solution, data = Data)
+plot(res.aov,2)
+aov_residuals <- residuals(object = res.aov )
+shapiro.test(x = aov_residuals)
+#Check for homoscedasticity
+leveneTest(diffunknown ~ solution,data=Data)
+#Kruskal Wallis test
+kruskal.test(diffunknown~solution,data=Data)
+#post hoc Dunn Test
+dunn.test(Data$diffunknown, g=Data$solution,method="BH")
+
+#"Mean difference fo unknown classification rate%"
+groupwiseMean(diffunknown~solution, data=Data,conf=0.95, R=5000, percentile = T, bca=F, digits=3)
+
+
+#--------------Figure 7A-------------
+#Import data Figure 7A
+Data=read.csv(file.path("F:","1909Zwirzitz","datafig7a.CSV"),sep=";",header=TRUE)
+summary(Data)
+
+#Figure 7A
+plot(Data$all, Data$mean200, col="red", xlab="classification rate of the orignal dataset", ylab="classification rate of different dataset sizes",pch=1)
+points(Data$all, Data$mean500, col = "orange",pch=2)
+points(Data$all, Data$mean1000, col = "yellow",pch=3)
+points(Data$all, Data$mean5000, col = "lightgreen",pch=4)
+points(Data$all, Data$X7712_01, col ="lightblue",pch=5)
+lines(c(0,0.4),c(0,0.4),col="black")
+legend(0, 0.5, legend=c("200 seq","500 seq","1000 seq","5000 seq","7712 seq","all seq"),
+       col=c("red","orange","yellow","lightgreen","lightblue","black"),pch=c(1,2,3,4,5,NA), lty=c(0,0,0,0,0,1), cex=0.8)
+
+
+
+#-------------Figure 7B----------------
+#Import Date Figure 7B
+Data=read.csv(file.path("F:","1909Zwirzitz","datafig7b.CSV"),sep=";",header=TRUE)
+summary(Data)
+
+
+#Preparations Figure 7B
+xq1 = 0:8000
+p = pchip(Data$solution,Data$meantq,xq1)
+p1 = pchip(Data$solution,Data$X25tq,xq1)
+p2 = pchip(Data$solution,Data$mintq,xq1)
+p3 = pchip(Data$solution,Data$X75tq,xq1)
+p4 = pchip(Data$solution,Data$maxtq,xq1)
+p5 = pchip(Data$solution,Data$meanuk,xq1)
+p6 = pchip(Data$solution,Data$X25uk,xq1)
+p7 = pchip(Data$solution,Data$minuk,xq1)
+p8 = pchip(Data$solution,Data$X75uk,xq1)
+p9= pchip(Data$solution,Data$maxuk,xq1)
+
+#Figure 7B
+par(family="sans")
+plot(Data$solution,100*Data$meantq,ylim=c(0,100),lty=1, xlab= "dataset size", ylab="hit ratio vs. unknown classification rate [in %]", col="white")
+polygon(c(xq1,rev(xq1)),c(100*p7,rev(100*p9)),col="#f0f0f0",lty=0)
+polygon(c(xq1,rev(xq1)),c(100*p6,rev(100*p8)),col="#bdbdbd",lty=0)
+lines(xq1,100*p7,lty=3,lwd=0.5,col="#636363")
+lines(xq1,100*p9,lty=3,lwd=0.5,col="#636363")
+lines(xq1,100*p6,lty=2,lwd=0.5,col="#636363")
+lines(xq1,100*p8,lty=2,lwd=0.5,col="#636363")
+library(ggplot2)
+polygon(c(xq1,rev(xq1)),c(100*p2,rev(100*p4)),col=alpha("#f0f0f0",0.5),lty=0)
+polygon(c(xq1,rev(xq1)),c(100*p1,rev(100*p3)),col=alpha("#bdbdbd",0.5),lty=0)
+lines(xq1,100*p5,lty=1,lwd=2, col = "#31a354")
+points(Data$solution,100*Data$meanuk,pch=20, col="#31a354")
+lines(xq1,100*p, lty=1,lwd=2, col ="#e34a33" )
+lines(xq1,100*p2,lty=3,lwd=0.5,col="#636363")
+lines(xq1,100*p4,lty=3,lwd=0.5,col="#636363")
+lines(xq1,100*p1,lty=2,lwd=0.5,col="#636363")
+lines(xq1,100*p3,lty=2,lwd=0.5,col="#636363")
+points(Data$solution,100*Data$meantq,pch=20, col="#e34a33")
+```
