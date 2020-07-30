@@ -3,6 +3,4 @@ This repository contains the Script used for analysis presented in "The sources 
 
 Please cite:
 
-The sources and transmission routes of microbial populations throughout a meat processing facility
-Benjamin Zwirzitz, Stefanie U. Wetzels, Emmanuel D. Dixon, Beatrix Stessl, Andreas Zaiser, Isabel Rabanser, Sarah Thalguter, Beate Pinior, Franz-Ferdinand Roch, Cameron Strachan, Jürgen Zhangellini, Monika Dzieciol, Martin Wagner, Evelyne Mann
-bioRxiv 758730; doi: https://doi.org/10.1101/758730 
+Zwirzitz, B., Wetzels, S.U., Dixon, E.D. et al. The sources and transmission routes of microbial populations throughout a meat processing facility. npj Biofilms Microbiomes 6, 26 (2020). https://doi.org/10.1038/s41522-020-0136-z
